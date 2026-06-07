@@ -1,0 +1,132 @@
+{
+  "info": {
+    "_postman_id": "c1f71a93-5b8d-4e92-9494-dfc1dfa0cfdf",
+    "name": "Incident Management API",
+    "description": "Postman Collection for Incident Management API containing all endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Incident",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"heading\": \"Checkout Service 500 Errors due to Redis Connection Pool Exhaustion\",\n  \"summary\": \"A spike in 500 errors on checkout-service was observed due to connection exhaustion in jedis.\",\n  \"sources\": [\n    {\n      \"name\": \"PROMETHEUS\",\n      \"description\": \"Prometheus metrics showing increase in HTTP 500 errors.\",\n      \"data\": {\n        \"metric\": \"http_requests_total\",\n        \"value\": 540\n      }\n    },\n    {\n      \"name\": \"KIBANA\",\n      \"description\": \"Kibana logs showing JedisConnectionException.\",\n      \"data\": {\n        \"log\": \"JedisConnectionException: Could not get a resource from the pool\"\n      }\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "incidents"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Incidents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents?page=1&limit=20",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "incidents"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Incident By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/incidents/65f37efb8401ef6c1178229b",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "incidents",
+            "65f37efb8401ef6c1178229b"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

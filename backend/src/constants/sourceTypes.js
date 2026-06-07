@@ -1,0 +1,8 @@
+export const SOURCE_TYPES = {
+  PROMETHEUS: 'PROMETHEUS',
+  KIBANA: 'KIBANA',
+  GITHUB: 'GITHUB',
+  ARGO: 'ARGO'
+};
+
+export const SUPPORTED_SOURCES = Object.values(SOURCE_TYPES);
