@@ -16,20 +16,32 @@ FRONTEND_BACKEND_URL = os.getenv("FRONTEND_BACKEND_URL", "").strip()
 FRONTEND_BACKEND_AUTH = os.getenv("FRONTEND_BACKEND_AUTH", "").strip()
 
 
+def build_incident_payload(rca_payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize agent output into the backend incident creation payload."""
+    return {
+        "heading": rca_payload.get("heading", "No incident detected"),
+        "summary": rca_payload.get(
+            "summary",
+            "The agent completed a health check and did not find an active incident."
+        ),
+        "sources": rca_payload.get("sources", []),
+    }
+
+
 def send_rca_to_frontend(rca_payload: dict[str, Any], incident_context: str, output_path: str) -> Any:
     if not FRONTEND_BACKEND_URL:
         logging.info("[Server] FRONTEND_BACKEND_URL is not configured; skipping frontend callback.")
+        return None
+
+    if not rca_payload.get("is_incident", False):
+        logging.info("[Server] is_incident=false; skipping backend incident creation callback.")
         return None
 
     headers = {"Content-Type": "application/json"}
     if FRONTEND_BACKEND_AUTH:
         headers["Authorization"] = f"Bearer {FRONTEND_BACKEND_AUTH}"
 
-    body = {
-        "incident_context": incident_context,
-        "output_path": output_path,
-        "rca_payload": rca_payload,
-    }
+    body = build_incident_payload(rca_payload)
 
     response = requests.post(FRONTEND_BACKEND_URL, json=body, headers=headers, timeout=15)
     response.raise_for_status()
