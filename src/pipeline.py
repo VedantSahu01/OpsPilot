@@ -10,6 +10,8 @@ project_root = Path(__file__).resolve().parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+DEFAULT_OUTPUT_JSON = project_root / "sample-response.json"
+
 from src.agent import ops_pilot_agent
 from src.state import AgentState
 
@@ -70,8 +72,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-json",
         type=str,
-        default=os.getenv("RCA_OUTPUT_PATH", ""),
-        help="Optional path to write the final RCA payload as JSON.",
+        default=os.getenv("RCA_OUTPUT_PATH", str(DEFAULT_OUTPUT_JSON)),
+        help="Optional path to write the final RCA payload as JSON. Defaults to sample-response.json.",
     )
     parser.add_argument(
         "--debug",
