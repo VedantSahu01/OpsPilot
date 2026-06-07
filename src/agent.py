@@ -35,14 +35,17 @@ class RCASource(BaseModel):
     )
 
 class RCAPayload(BaseModel):
+    is_incident: bool = Field(
+        description="Boolean flag indicating whether this response is for an active incident (True) or normal/healthy state (False)."
+    )
     heading: str = Field(
-        description="A concise, high-impact title identifying the root incident."
+        description="A concise, high-impact title identifying the root incident, or a confirmation message if no incident is detected."
     )
     summary: str = Field(
-        description="A comprehensive engineering summary of the incident timeline, blast radius, and absolute root cause."
+        description="A comprehensive engineering summary of the incident timeline, blast radius, and absolute root cause. If no incident, should confirm healthy system state."
     )
     sources: List[RCASource] = Field(
-        description="A collection of structured sources containing exact operational telemetry used during triage."
+        description="A collection of structured sources containing exact operational telemetry used during triage. Empty list if no incident."
     )
 
 
@@ -53,16 +56,25 @@ class RCAPayload(BaseModel):
 SRE_SYSTEM_PROMPT = """You are OpsPilot, an elite Autonomous Site Reliability Engineer (SRE). 
 Your objective is to investigate incoming system alerts, diagnose the precise structural root cause, and compile an engineering Root Cause Analysis (RCA).
 
-You must execute an iterative, step-by-step diagnostic strategy:
+CRITICAL: You must first determine if an active incident exists:
+- Query Prometheus for error rates, latency spikes, or anomalous metrics
+- Query Kibana for error logs or exceptions
+- If all systems are healthy (no errors, normal metrics, no exception logs), conclude there is NO INCIDENT and report the system as operational
+
+If an incident exists, execute an iterative, step-by-step diagnostic strategy:
 1. Locate the Blast Radius: Look at the incident trigger and extract metrics via Prometheus to isolate the exact microservice, HTTP error codes, and timeframe.
 2. Inspect the Telemetry: Use discovered metrics context to look into Kibana application logs. Extract exact exceptions, stack traces, or systemic alerts.
 3. Trace the Code/Architecture: Correlate exceptions with recent changes by scanning recent GitHub Pull Requests and codebase architecture documentation.
 
+If NO INCIDENT is detected:
+- Report all systems as healthy
+- Provide an empty sources list
+- Return is_incident=false in your final response
+
 CRITICAL RULES:
 - Never assume or guess. If you lack data, invoke your tools to fetch it.
-- Continue looping through tools until you can cleanly map a metric spike -> to an explicit log exception -> to a specific code configuration change.
-- When you have compiled this chain of evidence, stop calling tools. Simply output your thoughts without requesting more tools, and the pipeline will automatically move to synthesis.
-"""
+- Continue looping through tools until you can either: (a) confirm healthy state OR (b) cleanly map a metric spike -> to an explicit log exception -> to a specific code configuration change.
+- When you have compiled sufficient evidence, stop calling tools and provide your analysis."""
 
 
 # ==========================================
@@ -116,8 +128,11 @@ def finalize_and_structure_rca(state: AgentState) -> Dict[str, Any]:
     
     synthesis_prompt = (
         "Review the complete SRE investigation transcript provided below. "
-        "Extract all actionable metrics data, log stack traces, and relevant GitHub PR details. "
-        "Construct a highly accurate, fully populated RCAPayload tracking all data points. "
+        "Determine if an active incident exists or if the system is healthy. "
+        "CRITICAL: Set is_incident=true ONLY if you found error logs, metric spikes, or exceptions. "
+        "Set is_incident=false if all systems are healthy with no anomalies detected. "
+        "\nIf incident exists: Extract all actionable metrics data, log stack traces, and relevant GitHub PR details. "
+        "If NO incident: Set sources to empty list and provide a confirmation message in heading and summary. "
         "Ensure the 'data' fields within the sources are populated with rich structural objects "
         "(e.g. query strings, timestamps, matrix blocks) that a UI can chart or visualize.\n\n"
         f"INVESTIGATION HISTORY:\n{state['messages']}"
@@ -126,7 +141,7 @@ def finalize_and_structure_rca(state: AgentState) -> Dict[str, Any]:
     rca_result: RCAPayload = structured_llm.invoke(synthesis_prompt)
     
     # Save the native Pydantic/Dict format directly into our global state
-    return {"rca_payload": rca_result.dict()}
+    return {"rca_payload": rca_result.model_dump(mode="json")}
 
 
 # ==========================================

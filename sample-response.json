@@ -1,9 +1,10 @@
 {
+    "is_incident": true,
     "heading": "Checkout Service 500 Errors due to Redis Connection Pool Exhaustion",
     "summary": "A spike in 500 errors on the checkout-service was observed, correlating with Redis connection pool exhaustion. Investigation revealed that a recent PR (#402) merged on 2026-06-07T08:20:00Z, which aimed to optimize Redis pool timeouts and idle slots, inadvertently led to the pool becoming exhausted. This resulted in `JedisConnectionException` errors and a cascade of 500 internal server errors for the checkout service.",
     "sources": [
         {
-            "name": <SourceTypeEnum.PROMETHEUS: "PROMETHEUS">,
+            "name": "PROMETHEUS",
             "description": "Prometheus metrics showing a sharp increase in HTTP 500 errors for the checkout-service, starting around 1780811594.",
             "data": {
                 "query": "http_requests_total{job="checkout-service", code=~"5.."}",
@@ -22,7 +23,7 @@
             }
         },
         {
-            "name": <SourceTypeEnum.KIBANA: "KIBANA">,
+            "name": "KIBANA",
             "description": "Kibana logs indicating `JedisConnectionException` errors related to Redis connection pool exhaustion, occurring around the time of the Prometheus spike.",
             "data": {
                 "search_string": "checkout-service AND status:500",
@@ -45,7 +46,7 @@
             }
         },
         {
-            "name": <SourceTypeEnum.GITHUB: "GITHUB">,
+            "name": "GITHUB",
             "description": "Details of the GitHub Pull Request (#402) that modified Redis connection pool configurations, merged shortly before the incident.",
             "data": {
                 "branch": "main",
