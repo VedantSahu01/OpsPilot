@@ -11,6 +11,7 @@ jobs:
     env:
       MOCK_URL: ${{ secrets.OPSPILOT_MOCK_URL }}
       AGENT_URL: ${{ secrets.OPSPILOT_AGENT_URL }}
+      RENDER_BACKEND_URL: ${{ secrets.OPSPILOT_RENDER_BACKEND_URL }}
     steps:
       - name: Wake mock server
         run: |
@@ -20,6 +21,22 @@ jobs:
               break
             fi
             echo "Waiting for mock server..."
+            sleep 10
+          done
+
+      - name: Wake backend render service
+        run: |
+          if [ -z "${RENDER_BACKEND_URL}" ]; then
+            echo "RENDER_BACKEND_URL is not configured, skipping backend wake step."
+            exit 0
+          fi
+
+          for i in $(seq 1 6); do
+            if curl -fs "${RENDER_BACKEND_URL}/health"; then
+              echo "Render backend awake"
+              break
+            fi
+            echo "Waiting for Render backend..."
             sleep 10
           done
 
