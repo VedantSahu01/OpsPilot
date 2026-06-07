@@ -17,6 +17,20 @@ class IncidentRepository {
       .lean();
   }
 
+  async findAllWithoutPagination() {
+    return await Incident.find()
+      .sort({ createdAt: -1 })
+      .lean();
+  }
+
+  async resolve(id) {
+    return await Incident.findByIdAndUpdate(
+      id,
+      { resolved: true },
+      { new: true }
+    ).lean();
+  }
+
   async countAll() {
     return await Incident.countDocuments();
   }

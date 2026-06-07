@@ -32,6 +32,19 @@ class IncidentService {
     };
   }
 
+  async getExportIncidents() {
+    const incidents = await incidentRepository.findAllWithoutPagination();
+    return incidents.map((inc) => this._mapIncident(inc));
+  }
+
+  async resolveIncident(id) {
+    const incident = await incidentRepository.resolve(id);
+    if (!incident) {
+      throw new ApiError(404, 'Incident not found');
+    }
+    return null;
+  }
+
   _mapIncident(incident) {
     if (!incident) return null;
     const { _id, ...rest } = incident;

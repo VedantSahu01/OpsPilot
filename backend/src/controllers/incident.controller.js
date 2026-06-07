@@ -23,3 +23,22 @@ export const getAllIncidents = (req, res, next) => {
     .then(({ incidents, pagination }) => ApiResponse.sendPaginated(res, 200, incidents, pagination))
     .catch(next);
 };
+
+export const exportIncidents = (req, res, next) => {
+  incidentService
+    .getExportIncidents()
+    .then((data) => {
+      res.setHeader('Content-Disposition', 'attachment; filename="opspilot-incidents.json"');
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).json(data);
+    })
+    .catch(next);
+};
+
+export const resolveIncident = (req, res, next) => {
+  const { id } = req.params;
+  incidentService
+    .resolveIncident(id)
+    .then(() => ApiResponse.send(res, 200, undefined, 'Incident marked as resolved'))
+    .catch(next);
+};

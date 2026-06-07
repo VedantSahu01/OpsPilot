@@ -2,7 +2,9 @@ import express from 'express';
 import {
   createIncident,
   getAllIncidents,
-  getIncidentById
+  getIncidentById,
+  exportIncidents,
+  resolveIncident
 } from '../controllers/incident.controller.js';
 import { validate } from '../middleware/validate.middleware.js';
 import { payloadNormalizationMiddleware } from '../middleware/payloadNormalization.middleware.js';
@@ -105,7 +107,9 @@ const router = express.Router();
  *               $ref: '#/components/schemas/ApiErrorResponse'
  */
 router.post('/', payloadNormalizationMiddleware, validate(createIncidentValidator), createIncident);
+router.get('/export', exportIncidents);
 router.get('/', validate(getAllIncidentsValidator), getAllIncidents);
+router.patch('/:id/resolve', validate(getIncidentByIdValidator), resolveIncident);
 router.get('/:id', validate(getIncidentByIdValidator), getIncidentById);
 
 export default router;

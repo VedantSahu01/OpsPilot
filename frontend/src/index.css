@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #070b15;
+  --color-brand-panel: #0e1526;
+  --color-brand-border: #1b253b;
+  --color-brand-accent: #10b981;
+  --color-brand-textDim: #8b9bb4;
+
+  --font-mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  --font-sans: Inter, system-ui, sans-serif;
+
+  --animate-pulse-glow: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.5;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.2);
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-slate-100 font-sans antialiased;
+  }
+}
+
+/* Custom layout scrollbars for panels & logs */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #070b15;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1b253b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+
+/* Prevent double lines or text selection issues on buttons */
+.no-select {
+  user-select: none;
+}

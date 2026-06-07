@@ -28,6 +28,10 @@ const incidentSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    resolved: {
+      type: Boolean,
+      default: false
+    },
     sources: {
       type: [sourceSchema],
       default: []
