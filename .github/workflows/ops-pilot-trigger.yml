@@ -1,0 +1,40 @@
+name: OpsPilot hourly trigger
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  wake-and-trigger:
+    runs-on: ubuntu-latest
+    env:
+      MOCK_URL: ${{ secrets.OPSPILOT_MOCK_URL }}
+      AGENT_URL: ${{ secrets.OPSPILOT_AGENT_URL }}
+    steps:
+      - name: Wake mock server
+        run: |
+          for i in $(seq 1 6); do
+            if curl -fs "${MOCK_URL}/health"; then
+              echo "Mock server awake"
+              break
+            fi
+            echo "Waiting for mock server..."
+            sleep 10
+          done
+
+      - name: Wake agent server
+        run: |
+          for i in $(seq 1 6); do
+            if curl -fs "${AGENT_URL}/health"; then
+              echo "Agent server awake"
+              break
+            fi
+            echo "Waiting for agent server..."
+            sleep 10
+          done
+
+      - name: Trigger OpsPilot pipeline
+        run: |
+          curl -X POST "${AGENT_URL}/trigger" \
+            -H "Content-Type: application/json" \
+            -d '{"incident_context":"Hourly scheduled monitoring check"}'
