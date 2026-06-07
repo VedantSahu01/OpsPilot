@@ -71,7 +71,7 @@ CRITICAL RULES:
 
 # Initialize our core reasoning engine (Gemini 1.5 Pro handles tool tracing flawlessly)
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-pro",
+    model="gemini-2.5-flash-lite",
     temperature=0.0,  # Keeping it deterministic for precise debugging
     google_api_key=os.getenv("GOOGLE_API_KEY")
 )
@@ -93,7 +93,11 @@ def call_agent_brain(state: AgentState) -> Dict[str, Any]:
             SystemMessage(content=SRE_SYSTEM_PROMPT),
             HumanMessage(content=f"ALERT INCOMING TRIGGER CONTEXT:\n{state['incident_context']}")
         ]
-    elif not any(isinstance(m, SystemMessage) for m in current_messages):
+        response = model_with_tools.invoke(current_messages)
+        # Persist the starting prompt messages in state so later turns keep full history.
+        return {"messages": [*current_messages, response]}
+
+    if not any(isinstance(m, SystemMessage) for m in current_messages):
         current_messages.insert(0, SystemMessage(content=SRE_SYSTEM_PROMPT))
 
     response = model_with_tools.invoke(current_messages)

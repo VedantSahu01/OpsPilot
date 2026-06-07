@@ -1,0 +1,65 @@
+{
+    "heading": "Checkout Service 500 Errors due to Redis Connection Pool Exhaustion",
+    "summary": "A spike in 500 errors on the checkout-service was observed, correlating with Redis connection pool exhaustion. Investigation revealed that a recent PR (#402) merged on 2026-06-07T08:20:00Z, which aimed to optimize Redis pool timeouts and idle slots, inadvertently led to the pool becoming exhausted. This resulted in `JedisConnectionException` errors and a cascade of 500 internal server errors for the checkout service.",
+    "sources": [
+        {
+            "name": <SourceTypeEnum.PROMETHEUS: "PROMETHEUS">,
+            "description": "Prometheus metrics showing a sharp increase in HTTP 500 errors for the checkout-service, starting around 1780811594.",
+            "data": {
+                "query": "http_requests_total{job="checkout-service", code=~"5.."}",
+                "result": [
+                    {
+                        "metric": "http_requests_total",
+                        "labels": "job=checkout-service, code=500, handler=/api/v1/checkout, method=POST",
+                        "values": [
+                            "1780811474: 82",
+                            "1780811594: 245",
+                            "1780811714: 510",
+                            "1780811834: 498"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": <SourceTypeEnum.KIBANA: "KIBANA">,
+            "description": "Kibana logs indicating `JedisConnectionException` errors related to Redis connection pool exhaustion, occurring around the time of the Prometheus spike.",
+            "data": {
+                "search_string": "checkout-service AND status:500",
+                "hits": [
+                    {
+                        "timestamp": "2026-06-07T08:45:12Z",
+                        "log_level": "ERROR",
+                        "service": "checkout-service",
+                        "message": "Failed to process checkout transaction",
+                        "stack_trace": "redis.clients.jedis.exceptions.JedisConnectionException: Could not get a resource from the pool\n at redis.clients.jedis.util.Pool.getResource"
+                    },
+                    {
+                        "timestamp": "2026-06-07T08:45:15Z",
+                        "log_level": "ERROR",
+                        "service": "checkout-service",
+                        "message": "Pool exhaustion detected. Active connections: 50, Idle connections: 0",
+                        "stack_trace": "redis.clients.jedis.exceptions.JedisConnectionException: Timeout waiting for idle object in pool"
+                    }
+                ]
+            }
+        },
+        {
+            "name": <SourceTypeEnum.GITHUB: "GITHUB">,
+            "description": "Details of the GitHub Pull Request (#402) that modified Redis connection pool configurations, merged shortly before the incident.",
+            "data": {
+                "branch": "main",
+                "pull_requests": [
+                    {
+                        "number": 402,
+                        "title": "perf(redis): Optimize session validation lookup by adjusting pool timeouts",
+                        "diff_summary": "Modified application.properties. Decreased spring.redis.jedis.pool.max-wait down to 50ms and lowered max-idle slots.",
+                        "url": "https://github.com/internal-ops/checkout-service/pull/402",
+                        "state": "closed",
+                        "merged_at": "2026-06-07T08:20:00Z"
+                    }
+                ]
+            }
+        }
+    ]
+}
