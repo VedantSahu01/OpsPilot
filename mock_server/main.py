@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from services.prometheus_mock import prometheus_bp
 from services.kibana_mock import kibana_bp
@@ -15,5 +16,7 @@ def health_check():
     return {"status": "Mock environment is healthy and running!"}, 200
 
 if __name__ == '__main__':
-    print("Starting OpsPilot Mock API Engine on http://127.0.0.1:5001...")
-    app.run(host='127.0.0.1', port=5001, debug=True)
+    port = int(os.getenv("PORT", "5001"))
+    host = os.getenv("HOST", "0.0.0.0")
+    print(f"Starting OpsPilot Mock API Engine on http://{host}:{port}...")
+    app.run(host=host, port=port, debug=True)
